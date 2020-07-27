@@ -45,6 +45,9 @@ find_package(asio REQUIRED)
 include_directories(${ASIO_INCLUDE})
 include_directories(${PROJECT_SOURCE_DIR}/src/)
 include_directories(${PROJECT_SOURCE_DIR}/src/third_party/base/src)
+include_directories(${PROJECT_SOURCE_DIR}/src/third_party/matplotlib-cpp)
+include_directories(${PROJECT_SOURCE_DIR}/src/third_party/matplotlib-cpp)
+include_directories("/usr/include/python2.7")
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/third_party/base)
 
@@ -53,7 +56,9 @@ set(
     src/main.cc
     src/net/ping/ping_client.h
     src/net/ping/ping_client.cc
+    src/display/matplot_displayer.h
+    src/display/matplot_displayer.cc
 )
 
 add_executable(${PROJECT_NAME} ${ProgrameSrc})
-target_link_libraries(${PROJECT_NAME} base)
+target_link_libraries(${PROJECT_NAME} base python2.7)
