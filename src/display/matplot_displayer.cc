@@ -8,6 +8,9 @@
 
 namespace display {
 
+const int kDataSizeLimitThreshold = 1000;
+const int kDataSizeLimitNum = kDataSizeLimitThreshold / 3;
+
 MathPlotDisplayer::MathPlotDisplayer() : running_(true) {
   matplotlibcpp::ion(); //开启一个画图的窗口
 }
@@ -19,6 +22,8 @@ void MathPlotDisplayer::OnRTTUpdate(const bool timeout,
   std::lock_guard<std::mutex> lock(mutex_);
   rtt_index_.push_back(sequence_number_);
   rtt_value_.push_back(ttl);
+
+  LimitDataSize();
 }
 
 void MathPlotDisplayer::OnPacketLossUpdate(const uint64_t sequence_number_,
@@ -57,6 +62,20 @@ void MathPlotDisplayer::Refresh() {
 
     matplotlibcpp::legend();
     matplotlibcpp::pause(0.01);
+  }
+}
+
+void MathPlotDisplayer::LimitDataSize() {
+  int rtt_size = rtt_index_.size();
+  if(rtt_size >= kDataSizeLimitThreshold) {
+    rtt_index_.erase(rtt_index_.begin(), rtt_index_.begin() + kDataSizeLimitNum);
+    rtt_value_.erase(rtt_value_.begin(), rtt_value_.begin() + kDataSizeLimitNum);
+  }
+
+  int loss_size = loss_index_.size();
+  if(loss_size >= kDataSizeLimitThreshold) {
+    loss_index_.erase(loss_index_.begin(), loss_index_.begin() + kDataSizeLimitNum);
+    loss_value_.erase(loss_value_.begin(), loss_value_.begin() + kDataSizeLimitNum);
   }
 }
 

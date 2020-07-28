@@ -20,4 +20,4 @@ sudo x86_64/bin/ping_shower 192.168.1.104
 ```
 
 ## 使用效果
-![image](https://github.com/243286065/pictures_markdown/blob/master/tools/a13f32cd1f75200b3f5d8bd2e57eac89.png?raw=true)
+![image](https://github.com/243286065/pictures_markdown/blob/master/tools/f75d192460770b41d7ee9aea3ac34804.png?raw=true)

@@ -52,7 +52,7 @@ private:
 
   unsigned short GetIdentifier();
 
-  void HandleTimeout();
+  void HandleTimeout(const uint64_t sequence_number);
   void HandleReceive(std::size_t length);
 
   void NotifyRTTUpdate(const bool timeout,  const uint64_t sequence_number_, int rtt);

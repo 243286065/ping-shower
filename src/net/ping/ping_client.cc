@@ -73,7 +73,7 @@ void PingClient::StartSend() {
   num_replies_ = 0;
   timer_.expires_at(time_sent_ +
                     std::chrono::milliseconds(kDefaultTimeoutThread));
-  timer_.async_wait(std::bind(&PingClient::HandleTimeout, this));
+  timer_.async_wait(std::bind(&PingClient::HandleTimeout, this, sequence_number_));
 }
 
 void PingClient::StartReceive() {
@@ -97,11 +97,11 @@ unsigned short PingClient::GetIdentifier() {
 #endif
 }
 
-void PingClient::HandleTimeout() {
+void PingClient::HandleTimeout(const uint64_t sequence_number) {
   if (num_replies_ == 0) {
     LOG(INFO) << "Request timed out";
     notify_thread_.PostTask([=]() {
-      NotifyRTTUpdate(true, sequence_number_, kDefaultTimeoutThread);
+      NotifyRTTUpdate(true, sequence_number, kDefaultTimeoutThread);
     });
   }
 
@@ -168,14 +168,14 @@ void PingClient::NotifyRTTUpdate(const bool timeout,
 void PingClient::NotifyPacketLossUpdate(const uint64_t sequence_number,
                                         const double loss) {
   LOG(INFO) << loss * 100 << "% packet loss";
+  num_replies_ok_ = 0;
+  first_sequence_number_ = sequence_number_ + 1;
+
   for (auto &observer : observer_list_) {
     if (observer) {
       observer->OnPacketLossUpdate(sequence_number, loss);
     }
   }
-
-  first_sequence_number_ = sequence_number_ + 1;
-  num_replies_ok_ = 0;
 }
 
 void PingClient::NotifyStop() {

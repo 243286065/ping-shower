@@ -23,6 +23,8 @@ private:
   void OnPacketLossUpdate(const uint64_t sequence_number_, const double loss) override;
   void OnStop() override;
 
+  void LimitDataSize();
+
   std::vector<uint64_t> rtt_index_;
   std::vector<uint64_t> rtt_value_;
 
