@@ -3,6 +3,7 @@
 #include "base/log/logging.h"
 #include "matplotlibcpp.h"
 
+#include <thread>
 #include <vector>
 
 namespace display {
@@ -13,30 +14,35 @@ MathPlotDisplayer::MathPlotDisplayer() : running_(true) {
 
 MathPlotDisplayer::~MathPlotDisplayer() {}
 
-void MathPlotDisplayer::Close() {
-  if (running_) {
-    running_ = false;
-    matplotlibcpp::close();
-  }
-}
-
 void MathPlotDisplayer::OnRTTUpdate(const bool timeout,
                                     const uint64_t sequence_number_, int ttl) {
+  std::lock_guard<std::mutex> lock(mutex_);
   rtt_index_.push_back(sequence_number_);
   rtt_value_.push_back(ttl);
-
-  Refresh();
 }
 
 void MathPlotDisplayer::OnPacketLossUpdate(const uint64_t sequence_number_,
                                            const double loss) {
+  std::lock_guard<std::mutex> lock(mutex_);
   loss_index_.push_back(sequence_number_);
   loss_value_.push_back(loss);
+}
 
-  Refresh();
+void MathPlotDisplayer::OnStop() {
+  if (running_) {
+    running_ = false;
+    try {
+      matplotlibcpp::clf(); //清除之前的图
+      matplotlibcpp::cla();
+      matplotlibcpp::close();
+    } catch (std::exception &e) {
+      LOG(WARNING) << "Exception: " << e.what();
+    }
+  }
 }
 
 void MathPlotDisplayer::Refresh() {
+  std::lock_guard<std::mutex> lock(mutex_);
   if (running_) {
     matplotlibcpp::clf(); //清除之前的图
     matplotlibcpp::subplot(2, 1, 1);

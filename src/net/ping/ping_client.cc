@@ -14,7 +14,7 @@ PingClient::PingClient(const std::string &destination, const int interval)
     : interval_(interval), io_work_(io_context_), resolver_(io_context_),
       socket_(io_context_, asio::ip::icmp::v4()), timer_(io_context_),
       sequence_number_(0), num_replies_(0), num_replies_ok_(0),
-      first_sequence_number_(sequence_number_ + 1) {
+      first_sequence_number_(sequence_number_ + 1), running_(false) {
   destination_ =
       *resolver_.resolve(asio::ip::icmp::v4(), destination, "").begin();
   work_thread_.Start();
@@ -25,6 +25,7 @@ PingClient::~PingClient() {}
 
 void PingClient::Start() {
   work_thread_.PostTask([this]() {
+    running_ = true;
     StartSend();
     StartReceive();
     io_context_.run();
@@ -32,14 +33,25 @@ void PingClient::Start() {
 }
 
 void PingClient::Stop() {
-  work_thread_.PostTask([this]() { io_context_.stop(); });
+  running_ = false;
+
+  if(socket_.is_open()) {
+      socket_.cancel();
+      socket_.close();
+    }
+
+  timer_.cancel();
+  io_context_.stop();
+
   work_thread_.Stop();
   notify_thread_.Stop();
 }
 
 void PingClient::StartSend() {
-  std::string body("\"Hello!\" from ping-shower ping.");
+  if(!running_)
+    return;
 
+  std::string body("\"Hello!\" from ping-shower ping.");
   // Create an ICMP header for an echo request.
   icmp_header echo_request;
   echo_request.type(icmp_header::echo_request);
@@ -65,6 +77,9 @@ void PingClient::StartSend() {
 }
 
 void PingClient::StartReceive() {
+  if(!running_)
+    return;
+
   // Discard any data already in the buffer.
   reply_buffer_.consume(reply_buffer_.size());
 
@@ -161,6 +176,14 @@ void PingClient::NotifyPacketLossUpdate(const uint64_t sequence_number,
 
   first_sequence_number_ = sequence_number_ + 1;
   num_replies_ok_ = 0;
+}
+
+void PingClient::NotifyStop() {
+  for (auto &observer : observer_list_) {
+    if (observer) {
+      observer->OnStop();
+    }
+  }
 }
 
 } // namespace net

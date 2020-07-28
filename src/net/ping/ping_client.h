@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <limits>
 #include <string>
 #include <unordered_set>
@@ -17,6 +18,7 @@ public:
   public:
     virtual void OnRTTUpdate(const bool timeout,  const uint64_t sequence_number_, int ttl) = 0;
     virtual void OnPacketLossUpdate(const uint64_t sequence_number_, const double loss) = 0;
+    virtual void OnStop() = 0;
   };
 
   PingClient(
@@ -55,6 +57,7 @@ private:
 
   void NotifyRTTUpdate(const bool timeout,  const uint64_t sequence_number_, int rtt);
   void NotifyPacketLossUpdate(const uint64_t sequence_number_, const double loss);
+  void NotifyStop();
 
   asio::io_context io_context_;
   asio::io_service::work io_work_;
@@ -75,6 +78,7 @@ private:
   base::Thread notify_thread_;
 
   std::unordered_set<Observer*> observer_list_;
+  std::atomic_bool running_;
 };
 
 } // namespace net

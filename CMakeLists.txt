@@ -47,7 +47,12 @@ include_directories(${PROJECT_SOURCE_DIR}/src/)
 include_directories(${PROJECT_SOURCE_DIR}/src/third_party/base/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/third_party/matplotlib-cpp)
 include_directories(${PROJECT_SOURCE_DIR}/src/third_party/matplotlib-cpp)
-include_directories("/usr/include/python2.7")
+
+#include_directories("/usr/include/python2.7")
+find_package(PythonInterp 2.7)
+find_package(PythonLibs 2.7)
+message(STATUS ${PYTHON_INCLUDE_DIRS})
+include_directories(${PROJECT_NAME} ${PYTHON_INCLUDE_DIRS})
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/third_party/base)
 
@@ -61,4 +66,4 @@ set(
 )
 
 add_executable(${PROJECT_NAME} ${ProgrameSrc})
-target_link_libraries(${PROJECT_NAME} base python2.7)
+target_link_libraries(${PROJECT_NAME} base ${PYTHON_LIBRARIES})
