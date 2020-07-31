@@ -16,7 +16,7 @@ class PingClient {
 public:
   class Observer{
   public:
-    virtual void OnRTTUpdate(const bool timeout,  const uint64_t sequence_number_, int ttl) = 0;
+    virtual void OnRTTUpdate(const bool timeout,  const uint64_t sequence_number_, int rtt) = 0;
     virtual void OnPacketLossUpdate(const uint64_t sequence_number_, const double loss) = 0;
     virtual void OnStop() = 0;
   };
@@ -68,7 +68,7 @@ private:
   std::chrono::steady_clock::time_point time_sent_;
   uint64_t sequence_number_;
   size_t num_replies_;
-  size_t num_replies_ok_;
+  size_t num_replies_timeout_;
   asio::streambuf reply_buffer_;
 
   int interval_;

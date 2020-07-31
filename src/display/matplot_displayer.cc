@@ -18,10 +18,10 @@ MathPlotDisplayer::MathPlotDisplayer() : running_(true) {
 MathPlotDisplayer::~MathPlotDisplayer() {}
 
 void MathPlotDisplayer::OnRTTUpdate(const bool timeout,
-                                    const uint64_t sequence_number_, int ttl) {
+                                    const uint64_t sequence_number_, int rtt) {
   std::lock_guard<std::mutex> lock(mutex_);
   rtt_index_.push_back(sequence_number_);
-  rtt_value_.push_back(ttl);
+  rtt_value_.push_back(rtt);
 
   LimitDataSize();
 }

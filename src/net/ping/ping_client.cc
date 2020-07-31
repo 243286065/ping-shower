@@ -13,7 +13,7 @@ const int kDefaultTimeoutThread = 2000; // ,s
 PingClient::PingClient(const std::string &destination, const int interval)
     : interval_(interval), io_work_(io_context_), resolver_(io_context_),
       socket_(io_context_, asio::ip::icmp::v4()), timer_(io_context_),
-      sequence_number_(0), num_replies_(0), num_replies_ok_(0),
+      sequence_number_(0), num_replies_(0), num_replies_timeout_(0),
       first_sequence_number_(sequence_number_ + 1), running_(false) {
   destination_ =
       *resolver_.resolve(asio::ip::icmp::v4(), destination, "").begin();
@@ -100,6 +100,7 @@ unsigned short PingClient::GetIdentifier() {
 void PingClient::HandleTimeout(const uint64_t sequence_number) {
   if (num_replies_ == 0) {
     LOG(INFO) << "Request timed out";
+    num_replies_timeout_++;
     notify_thread_.PostTask([=]() {
       NotifyRTTUpdate(true, sequence_number, kDefaultTimeoutThread);
     });
@@ -142,7 +143,6 @@ void PingClient::HandleReceive(std::size_t length) {
               << ": icmp_seq=" << icmp_hdr.sequence_number()
               << ", ttl=" << ipv4_hdr.time_to_live() << ", time=" << rtt;
 
-    num_replies_ok_++;
     notify_thread_.PostTask(
         [&]() { NotifyRTTUpdate(false, sequence_number_, rtt); });
   }
@@ -151,16 +151,17 @@ void PingClient::HandleReceive(std::size_t length) {
 }
 
 void PingClient::NotifyRTTUpdate(const bool timeout,
-                                 const uint64_t sequence_number_, int ttl) {
+                                 const uint64_t sequence_number, int rtt) {
   for (auto &observer : observer_list_) {
     if (observer) {
-      observer->OnRTTUpdate(timeout, sequence_number_, ttl);
+      rtt = std::min<int>(kDefaultTimeoutThread, rtt);
+      observer->OnRTTUpdate(timeout, sequence_number, rtt);
     }
   }
 
-  bool last_sequence_number = (sequence_number_ % interval_ == 0);
+  bool last_sequence_number = (sequence_number % interval_ == 0);
   if (last_sequence_number) {
-    double loss = 1 - (double)num_replies_ok_ / interval_;
+    double loss = (double)num_replies_timeout_ / interval_;
     NotifyPacketLossUpdate(first_sequence_number_, loss);
   }
 }
@@ -168,8 +169,8 @@ void PingClient::NotifyRTTUpdate(const bool timeout,
 void PingClient::NotifyPacketLossUpdate(const uint64_t sequence_number,
                                         const double loss) {
   LOG(INFO) << loss * 100 << "% packet loss";
-  num_replies_ok_ = 0;
-  first_sequence_number_ = sequence_number_ + 1;
+  num_replies_timeout_ = 0;
+  first_sequence_number_ = first_sequence_number_  + interval_;
 
   for (auto &observer : observer_list_) {
     if (observer) {

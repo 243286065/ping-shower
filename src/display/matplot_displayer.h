@@ -19,7 +19,7 @@ public:
   void Refresh();
 
 private:
-  void OnRTTUpdate(const bool timeout,  const uint64_t sequence_number_, int ttl) override;
+  void OnRTTUpdate(const bool timeout,  const uint64_t sequence_number_, int rtt) override;
   void OnPacketLossUpdate(const uint64_t sequence_number_, const double loss) override;
   void OnStop() override;
 
