@@ -68,22 +68,22 @@ seq_num = 0
 target_addr = ""
 
 
-def checksum(source_string):
+def checksum(source_bytes):
     """
     I'm not too confident that this is right but testing seems
     to suggest that it gives the same answers as in_cksum in ping.c
     """
     sum = 0
-    countTo = (len(source_string)/2)*2
+    countTo = (len(source_bytes)/2)*2
     count = 0
     while count<countTo:
-        thisVal = ord(source_string[count + 1])*256 + ord(source_string[count])
+        thisVal = source_bytes[count + 1]*256 + source_bytes[count]
         sum = sum + thisVal
         sum = sum & 0xffffffff # Necessary?
         count = count + 2
 
-    if countTo<len(source_string):
-        sum = sum + ord(source_string[len(source_string) - 1])
+    if countTo<len(source_bytes):
+        sum = sum + source_bytes[len(source_bytes) - 1]
         sum = sum & 0xffffffff # Necessary?
 
     sum = (sum >> 16)  +  (sum & 0xffff)
@@ -150,8 +150,8 @@ def send_one_ping(my_socket, dest_addr, ID):
     # Make a dummy heder with a 0 checksum.
     header = struct.pack("bbHHI", ICMP_ECHO_REQUEST, 0, my_checksum, ID, seq_num)
     bytesInDouble = struct.calcsize("d")
-    data = (192 - bytesInDouble) * "Q"
-    data = struct.pack("d", default_timer()) + data
+    payload = (192 - bytesInDouble) * "Q"
+    data = struct.pack("d", default_timer()) + payload.encode()
 
     # Calculate the checksum on the data and the dummy header.
     my_checksum = checksum(header + data)
@@ -177,8 +177,8 @@ def do_one(dest_addr, timeout):
     icmp = socket.getprotobyname("icmp")
     try:
         my_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, icmp)
-    except socket.error,(errno, msg):
-        if errno == 1:
+    except socket.error as err:
+        if err.errno == 1:
             # Operation not permitted
             msg = msg + (
                 " - Note that ICMP messages can only be sent from processes"
@@ -186,7 +186,6 @@ def do_one(dest_addr, timeout):
             )
             raise socket.error(msg)
         raise # raise the original error
-
     my_ID = os.getpid() & 0xFFFF
 
     valid, ip = send_one_ping(my_socket, dest_addr, my_ID)
@@ -205,25 +204,22 @@ def verbose_ping(dest_addr, timeout = 2, count = 1):
     Send >count< ping to >dest_addr< with the given >timeout< and display
     the result.
     """
-    for i in xrange(count):
+    for i in range(count):
         # print "ping %s..." % dest_addr,
         try:
             valid, ip, delay, sequence  =  do_one(dest_addr, timeout)
-        except socket.gaierror, e:
-            print "failed. (socket error: '%s')" % e[1]
+        except socket.error as e:
+            print("failed. (socket error: '%s')" % e)
             raise
-        except socket.error, e:
-            print "failed. (socket error: '%s')" % e[0]
-            raise
-        except:
-            print "failed. (unknow socket error)"
+        except Exception as e:
+            print("failed. (%s)" % (e) ) 
             raise
         if not valid or delay  ==  None:
-            print "failed. (timeout within %ssec.)" % timeout
+            print("failed. (timeout within %ssec.)" % timeout)
             return valid, sequence, delay
         else:
             delay  =  delay * 1000
-            print "Reply from %s(%s) icmp_seq=%d time=%0.2f ms" % (dest_addr, ip, sequence, delay)
+            print("Reply from %s(%s) icmp_seq=%d time=%0.2f ms" % (dest_addr, ip, sequence, delay))
             return valid, sequence, delay
 
 

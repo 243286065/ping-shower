@@ -78,13 +78,15 @@ def do_ping(*target_addr):
                 continue
             else:
                 time.sleep((PING_INTERVAL_MS - delay) / 1000.0)
-        except:
+        except Exception as e:
+            # print("error: %s" % e)
             exit(None, None)
 
 def do_display_result():
     plt.ion()
     fig = plt.figure("Network State Monitor")
     fig.canvas.mpl_connect('close_event', handle_figure_close)
+    plt.pause(0.01)
 
     global rtt_index_vec, rtt_value_vec, loss_index_vec, loss_value_vec, con
     while not stop:
@@ -97,12 +99,12 @@ def do_display_result():
         plt.subplot(2,1,2)
         plt.plot(loss_index_vec,loss_value_vec, 'r', label='loss')
         plt.legend()
-
         con.wait()
         try:
             plt.pause(0.01)
         except:
             None
+
     plt.clf()
     plt.close()
 
@@ -120,7 +122,7 @@ def main():
 
     do_display_result()
 
-    thread_ping.join(sys.maxsize)
+    thread_ping.join(10)
 
 if __name__ == '__main__':
     sys.exit(main())

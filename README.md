@@ -1,7 +1,7 @@
 # ping-shower
 功能: 可视化显示当前ping的rtt值和丢包率.
 
-运行环境: 目前在Linux上运行成功,理论上在Windows也是可以,只要配置好python2的环境.
+运行环境: 目前在Linux上运行成功,理论上在Windows也是可以,只要配置好python3的环境.
 
 ## 安装
 首先请安装 `matplotlib`, 本程序使用它作图:
@@ -13,9 +13,9 @@ pip install matplotlib
 
 ## 使用
 ```
-python ping.py ip
+python3 ping.py ip
 ```
-> 注意Linux上需要使用root权限运行, 请注意暂时只支持`python2`,不支持`python3`
+> 注意Linux上需要使用root权限运行, 请注意暂时只支持`python3`,不支持`python2`
 
 ## 使用效果
 ![image](https://github.com/243286065/pictures_markdown/blob/master/tools/f75d192460770b41d7ee9aea3ac34804.png?raw=true)
