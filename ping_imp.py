@@ -53,6 +53,7 @@
 
 
 import os, sys, socket, struct, select, time
+from sys import version_info
 
 if sys.platform == "win32":
     # On Windows, the best timer is time.clock()
@@ -77,13 +78,19 @@ def checksum(source_bytes):
     countTo = (len(source_bytes)/2)*2
     count = 0
     while count<countTo:
-        thisVal = source_bytes[count + 1]*256 + source_bytes[count]
+        if version_info.major == 2:
+            thisVal = ord(source_bytes[count + 1])*256 + ord(source_bytes[count])
+        else:
+            thisVal = source_bytes[count + 1]*256 + source_bytes[count]
         sum = sum + thisVal
         sum = sum & 0xffffffff # Necessary?
         count = count + 2
 
     if countTo<len(source_bytes):
-        sum = sum + source_bytes[len(source_bytes) - 1]
+        if version_info.major == 2:
+            sum = sum + ord(source_bytes[len(source_bytes) - 1])
+        else:
+            sum = sum + source_bytes[len(source_bytes) - 1]
         sum = sum & 0xffffffff # Necessary?
 
     sum = (sum >> 16)  +  (sum & 0xffff)
@@ -151,7 +158,10 @@ def send_one_ping(my_socket, dest_addr, ID):
     header = struct.pack("bbHHI", ICMP_ECHO_REQUEST, 0, my_checksum, ID, seq_num)
     bytesInDouble = struct.calcsize("d")
     payload = (192 - bytesInDouble) * "Q"
-    data = struct.pack("d", default_timer()) + payload.encode()
+    if version_info.major == 2:
+        data = struct.pack("d", default_timer()) + payload
+    else:
+        data = struct.pack("d", default_timer()) + payload.encode()
 
     # Calculate the checksum on the data and the dummy header.
     my_checksum = checksum(header + data)
