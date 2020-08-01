@@ -1,9 +1,0 @@
-[submodule "src/third_party/base"]
-	path = src/third_party/base
-	url = https://github.com/243286065/cpplib_base.git
-[submodule "src/third_party/asio"]
-	path = src/third_party/asio
-	url = https://github.com/chriskohlhoff/asio.git
-[submodule "src/third_party/matplotlib-cpp"]
-	path = src/third_party/matplotlib-cpp
-	url = https://github.com/lava/matplotlib-cpp.git

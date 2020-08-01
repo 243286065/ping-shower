@@ -3,25 +3,19 @@
 
 运行环境: 目前在Linux上运行成功,理论上在Windows也是可以的,不过尚未适配,可能会有些库找不到.
 
-## 编译和安装
+## 安装
 首先请安装 `matplotlib`, 本程序使用它作图:
 ```
-sudo apt-get install python-matplotlib python-numpy python2.7-dev
+pip install matplotlib
 ```
 
-然后使用cmake进行进行:
-```
-git submodule update --init
-
-cmake .
-make
-```
+由于改用python实现,因此无需编译直接可以运行.
 
 ## 使用
-在Linux上运行需要管理员权限:
 ```
-sudo x86_64/bin/ping_shower 192.168.1.104
+python ping.py ip
 ```
+> 注意Linux上需要使用root权限运行
 
 ## 使用效果
 ![image](https://github.com/243286065/pictures_markdown/blob/master/tools/f75d192460770b41d7ee9aea3ac34804.png?raw=true)
