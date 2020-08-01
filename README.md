@@ -15,7 +15,9 @@ pip install matplotlib
 ```
 python ping.py ip
 ```
-> 注意Linux上需要使用root权限运行
+> 注意Linux上需要使用root权限运行, 请注意暂时只支持`python2`,不支持`python3`
 
 ## 使用效果
 ![image](https://github.com/243286065/pictures_markdown/blob/master/tools/f75d192460770b41d7ee9aea3ac34804.png?raw=true)
+
+> C++版本请切换分支到`cplusplus`,目前还只在Linux上调试通过.
