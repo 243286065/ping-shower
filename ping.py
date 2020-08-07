@@ -7,7 +7,7 @@ import signal
 import matplotlib.pyplot as plt
 
 LOSS_PERIOD_CNT = 10
-VALUE_MAX_LEN = 800
+VALUE_MAX_LEN = 600
 PING_INTERVAL_MS = 1000
 
 con = threading.Condition()
@@ -52,13 +52,13 @@ def handle_ping_result(is_timeout, sequence, rtt):
         total_cnt = 0
         loss_cnt = 0
 
-    if len(rtt_index_vec) == VALUE_MAX_LEN:
-        rtt_index_vec = rtt_index_vec[(int)(VALUE_MAX_LEN * 0.25):]
-        rtt_value_vec = rtt_value_vec[(int)(VALUE_MAX_LEN * 0.25):]
+    if len(rtt_index_vec) == VALUE_MAX_LEN + 1:
+        rtt_index_vec = rtt_index_vec[1:]
+        rtt_value_vec = rtt_value_vec[1:]
     
-    if len(loss_index_vec) == VALUE_MAX_LEN:
-        loss_index_vec = loss_index_vec[(int)(VALUE_MAX_LEN * 0.25):]
-        loss_value_vec = loss_value_vec[(int)(VALUE_MAX_LEN * 0.25):]
+    if len(loss_index_vec) == VALUE_MAX_LEN + 1:
+        loss_index_vec = loss_index_vec[1:]
+        loss_value_vec = loss_value_vec[1:]
 
     con.notify()
     con.release()
